@@ -44,8 +44,24 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+            return new RedirectResponse($targetPath);
+        }
+
+        // Redirection selon le rôle
+        $user = $token->getUser();
+        if (in_array('ROLE_TEACHER', $user->getRoles(), true)) {
+            return new RedirectResponse($this->urlGenerator->generate('teacher_dashboard'));
+        }
+
+        if (in_array('ROLE_STUDENT', $user->getRoles(), true)) {
+            return new RedirectResponse('http://localhost:5173/student/');
+        }
+
+        // Par défaut
         return new RedirectResponse($this->urlGenerator->generate('app_home'));
     }
+
 
     protected function getLoginUrl(Request $request): string
     {
