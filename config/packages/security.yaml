@@ -42,6 +42,11 @@ security:
             # switch_user: true
 
     # Note: Only the *first* matching rule is applied
+    role_hierarchy:
+        ROLE_STUDENT: ROLE_STUDENT
+        ROLE_TEACHER: ROLE_TEACHER
+        ROLE_ADMIN: [ ROLE_TEACHER, ROLE_STUDENT, ROLE_ALLOWED_TO_SWITCH ]
+
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }

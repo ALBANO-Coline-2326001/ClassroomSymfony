@@ -41,7 +41,7 @@ class AppFixtures extends Fixture
             ['Doctrine ORM', 'Maitriser la base de données relationnelle.']
         ];
 
-        $allQuizzes = []; // On stocke les quiz créés pour générer des notes après
+        $allQuizzes = [];
 
         foreach ($coursesData as $cData) {
             $course = new Cours();
@@ -50,7 +50,6 @@ class AppFixtures extends Fixture
                 ->setTeacher($teacher);
             $manager->persist($course);
 
-            // A. Ajout de Vidéos et Documents
             for ($i = 1; $i <= 3; $i++) {
                 $video = new Video();
                 $video->setTitle("Chapitre $i : " . $faker->sentence(3))
@@ -60,18 +59,17 @@ class AppFixtures extends Fixture
                 $manager->persist($video);
             }
 
-            // B. Ajout du QCM (Généré par "IA") 🤖
-            $quiz = new Qcm();
-            $quiz->setTitle('QCM - ' . $cData[0])
+            $qcm = new Qcm();
+            $qcm->setTitle('QCM - ' . $cData[0])
                 ->setCours($course);
-            $manager->persist($quiz);
-            $allQuizzes[] = $quiz; // Sauvegarde pour plus tard
+            $manager->persist($qcm);
+            $allQuizzes[] = $qcm; // Sauvegarde pour plus tard
 
             // C. Ajout des Questions/Réponses
             for ($q = 0; $q < 5; $q++) { // 5 Questions par Quiz
                 $question = new Question();
                 $question->setEntitled($faker->sentence(10) . ' ?') // Phrase interrogative
-                ->setQcm($quiz);
+                ->setQcm($qcm);
                 $manager->persist($question);
 
                 // 1 Bonne réponse ✅
@@ -92,7 +90,6 @@ class AppFixtures extends Fixture
             }
         }
 
-        // --- 3. CRÉATION DES ÉTUDIANTS (Alice, Thomas...) 👩‍🎓 ---
         $studentsData = [
             ['Alice', 'Martin'], ['Thomas', 'Dubois'],
             ['Sophie', 'Bernard'], ['Lucas', 'Laurent']
@@ -107,12 +104,10 @@ class AppFixtures extends Fixture
                 ->setPassword($this->hasher->hashPassword($student, 'password'));
             $manager->persist($student);
 
-            // --- 4. SIMULATION DES RÉSULTATS (QuizAttempt) 📊 ---
-            // Chaque étudiant passe 2 quiz au hasard
             for ($k = 0; $k < 2; $k++) {
                 $attempt = new Note();
                 $attempt->setStudent($student)
-                    ->setQcm($faker->randomElement($allQuizzes)) // Un quiz au pif
+                    ->setQcm($faker->randomElement($allQuizzes)) // Un qcm au pif
                     ->setScore($faker->numberBetween(8, 20)) // Note entre 8 et 20
                     ->setAttemptedAt(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-1 month', 'now')));
 

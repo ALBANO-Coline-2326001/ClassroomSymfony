@@ -11,9 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 class Teacher extends User
 {
 
-    #[ORM\Column(length: 10, nullable: true)]
-    private ?string $role = null;
-
     /**
      * @var Collection<int, Cours>
      */
@@ -23,18 +20,6 @@ class Teacher extends User
     public function __construct()
     {
         $this->cours = new ArrayCollection();
-    }
-
-    public function getRole(): ?string
-    {
-        return $this->role;
-    }
-
-    public function setRole(?string $role): static
-    {
-        $this->role = $role;
-
-        return $this;
     }
 
     /**

@@ -1,19 +1,47 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Inscription{% endblock %}
 
 {% block body %}
-    <h1>Register</h1>
+    <div class="container mt-5">
+        <h1 class="h3 mb-3 font-weight-normal">Créer un compte</h1>
 
-    {{ form_errors(registrationForm) }}
+        {{ form_errors(registrationForm) }}
 
-    {{ form_start(registrationForm) }}
-        {{ form_row(registrationForm.email) }}
+        {{ form_start(registrationForm) }}
+
+        <div class="row">
+            <div class="col-md-6">
+                {{ form_row(registrationForm.lastName, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="col-md-6">
+                {{ form_row(registrationForm.firstName, {'attr': {'class': 'form-control'}}) }}
+            </div>
+        </div>
+
+        <div class="my-3 p-3 border rounded bg-light">
+            {{ form_row(registrationForm.roles) }}
+        </div>
+
+        {{ form_row(registrationForm.email, {'attr': {'class': 'form-control'}}) }}
+
         {{ form_row(registrationForm.plainPassword, {
-            label: 'Password'
+            label: 'Mot de passe',
+            attr: {'class': 'form-control'}
         }) }}
-        {{ form_row(registrationForm.agreeTerms) }}
 
-        <button type="submit" class="btn">Register</button>
-    {{ form_end(registrationForm) }}
+        <div class="my-3">
+            {{ form_row(registrationForm.agreeTerms) }}
+        </div>
+
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-lg btn-primary">S'inscrire</button>
+
+            <a href="{{ path('app_login') }}" class="btn btn-outline-secondary">
+                J'ai déjà un compte (Connexion)
+            </a>
+        </div>
+
+        {{ form_end(registrationForm) }}
+    </div>
 {% endblock %}
