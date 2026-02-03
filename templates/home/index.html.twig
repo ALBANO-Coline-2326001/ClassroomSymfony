@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - EduLearn{% endblock %}
+
+{% block body %}
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-3">Apprenez intelligemment avec l'IA</h1>
+            <p class="lead mb-4 opacity-75">Accédez à vos cours, regardez des vidéos et testez vos connaissances avec des QCM générés automatiquement.</p>
+            <a href="{{ path('app_cours') }}" class="btn btn-light text-primary fw-bold rounded-pill px-5 py-3 shadow-lg">
+                Commencer à apprendre <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="container mt-n5" style="margin-top: -50px;">
+        <div class="row g-4 justify-content-center">
+
+            <div class="col-md-5">
+                <div class="card h-100 border-0 shadow card-hover rounded-4">
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4 text-primary bg-primary-subtle d-inline-block p-3 rounded-circle">
+                            <i class="fas fa-book-reader fa-3x"></i>
+                        </div>
+                        <h3 class="fw-bold">Mes Cours</h3>
+                        <p class="text-muted">Accédez à la bibliothèque de ressources, vidéos et PDF.</p>
+                        <a href="{{ path('app_cours') }}" class="btn btn-outline-primary rounded-pill px-4 mt-2">
+                            Voir les cours
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card h-100 border-0 shadow card-hover rounded-4">
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4 text-success bg-success-subtle d-inline-block p-3 rounded-circle">
+                            <i class="fas fa-chart-line fa-3x"></i>
+                        </div>
+                        <h3 class="fw-bold">Mes Performances</h3>
+                        <p class="text-muted">Suivez votre progression et analysez vos résultats aux QCM.</p>
+                        <a href="{{ path('app_qcm') }}" class="btn btn-outline-success rounded-pill px-4 mt-2">
+                            Voir mes notes
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

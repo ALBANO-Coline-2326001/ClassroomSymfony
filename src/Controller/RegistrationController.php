@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Student;
+use App\Entity\Teacher;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Security\UserAuthenticator;
@@ -23,18 +25,33 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $roleChoisi = $form->get('roles')->getData();
+
+            if ($roleChoisi === 'ROLE_TEACHER' || $roleChoisi === 'ROLE_PROF') {
+                $finalUser = new Teacher();
+            } else {
+                $finalUser = new Student();
+            }
+
+            $finalUser->setEmail($user->getEmail());
+            $finalUser->setFirstName($user->getFirstName());
+            $finalUser->setLastName($user->getLastName());
+            $finalUser->setRoles([$roleChoisi]);
+
+            /** @var string $plainPassword */
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
 
-            // encode the plain password
-            $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
+            $finalUser->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
 
-            $entityManager->persist($user);
+            $role = $form->get('roles')->getData();
+            $finalUser->setRoles([$role]);
+
+            $entityManager->persist($finalUser);
             $entityManager->flush();
 
-            // do anything else you need here, like send an email
-
-            return $security->login($user, UserAuthenticator::class, 'main');
+            return $security->login($finalUser, UserAuthenticator::class, 'main');
         }
 
         return $this->render('registration/register.html.twig', [

@@ -1,3 +1,69 @@
+/* public/css/style.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+:root {
+    --primary-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    --rose-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+    --card-gradient: linear-gradient(to right, #ff7eb3, #ff758c);
+    --bg-light: #f8f9fc;
+}
+
 body {
-    background-color: skyblue;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
+    color: #4a5568;
+}
+
+/* --- Navbar --- */
+.navbar-custom {
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.nav-link {
+    font-weight: 500;
+    color: #4a5568 !important;
+    transition: color 0.3s;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: #4e73df !important;
+}
+
+/* --- Cartes --- */
+.card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card-header-gradient {
+    background: var(--card-gradient);
+    color: white;
+}
+
+/* --- Badges & Boutons --- */
+.badge-soft-success {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+.badge-soft-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+.badge-soft-danger {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+/* --- Hero Section (Homepage) --- */
+.hero-section {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 80px 0;
+    border-radius: 0 0 50px 50px;
+    margin-bottom: 50px;
 }
