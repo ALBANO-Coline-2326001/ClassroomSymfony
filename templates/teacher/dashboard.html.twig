@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord professeur{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Bienvenue {{ user.email }}</h1>
+        <p>Vous êtes connecté en tant que professeur.</p>
+
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📚 Mes Cours</h5>
+                        {# <a href="{{ path('course_index') }}" class="btn btn-primary">Voir les cours</a> #}
+                        <button class="btn btn-primary" disabled>Voir les cours (à venir)</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📝 Créer un cours</h5>
+                        {# <a href="{{ path('course_new') }}" class="btn btn-success">Nouveau cours</a> #}
+                        <button class="btn btn-success" disabled>Nouveau cours (à venir)</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📊 Résultats</h5>
+                        {# <a href="{{ path('quiz_results') }}" class="btn btn-info">Voir les notes</a> #}
+                        <button class="btn btn-info" disabled>Voir les notes (à venir)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

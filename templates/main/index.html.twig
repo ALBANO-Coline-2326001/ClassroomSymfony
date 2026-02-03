@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container text-center mt-5">
+        <h1>Bienvenue sur 🎓 EduLearn</h1>
+        <p class="lead">Accédez à vos cours et passez vos QCM en un clic.</p>
+
+        <div class="mt-4">
+            <a href="{{ path('app_login') }}" class="btn btn-primary btn-lg me-3">Connexion</a>
+            <a href="{{ path('app_register') }}" class="btn btn-outline-primary btn-lg">Inscription</a>
+        </div>
+    </div>
+{% endblock %}

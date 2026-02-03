@@ -9,24 +9,49 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    #[Route(path: '/login', name: 'app_login')]
+    #[\Symfony\Component\Routing\Annotation\Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        // if ($this->getUser()) {
-        //     return $this->redirectToRoute('target_path');
-        // }
+        // Si déjà connecté, rediriger selon le rôle
+        if ($this->getUser()) {
+            return $this->redirectBasedOnRole();
+        }
 
-        // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
-        // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
+        return $this->render('security/login.html.twig', [
+            'last_username' => $lastUsername,
+            'error' => $error,
+        ]);
     }
 
-    #[Route(path: '/logout', name: 'app_logout')]
+    #[Route('/logout', name: 'app_logout')]
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+
+    #[Route('/login-redirect', name: 'login_redirect')]
+    public function loginRedirect(): Response
+    {
+        return $this->redirectBasedOnRole();
+    }
+
+    private function redirectBasedOnRole(): Response
+    {
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Vérifier si l'utilisateur a le rôle ROLE_TEACHER
+        if (in_array('ROLE_TEACHER', $user->getRoles())) {
+            return $this->redirectToRoute('teacher_dashboard');
+        }
+
+        // Sinon, rediriger vers l'application React (étudiant)
+        return $this->redirectToRoute('student_app');
     }
 }
