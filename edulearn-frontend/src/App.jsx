@@ -130,7 +130,7 @@ function App() {
 
     // --- Utils ---
     const closePopup = () => setActiveQcm(null)
-    const handleLogout = () => { localStorage.removeItem('token'); window.location.href = 'http://127.0.0.1:8000' }
+    const handleLogout = () => { localStorage.removeItem('token'); window.location.href = 'http://127.0.0.1:8000/logout' }
     const toggleCourse = (id) => setExpandedCourse(expandedCourse === id ? null : id)
     const downloadDocument = (url) => window.open(`http://127.0.0.1:8000${url}`, '_blank')
 
@@ -141,7 +141,6 @@ function App() {
                 <div className="nav-container">
                     <div className="logo">🎓 EduLearn</div>
                     <div className="nav-buttons">
-                        <button className="btn btn-outline">Les Cours</button>
                         <button onClick={handleLogout} className="btn-danger">Déconnexion</button>
                     </div>
                 </div>
