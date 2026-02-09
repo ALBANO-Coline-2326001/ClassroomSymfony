@@ -19,6 +19,17 @@ function App() {
     const [score, setScore] = useState(0)
     const [showResult, setShowResult] = useState(false)
 
+    // Utility: normaliser une collection API en tableau
+    const normalizeCollection = (data) => {
+        if (!data) return []
+        if (Array.isArray(data)) return data
+        if (data['hydra:member']) return data['hydra:member']
+        if (data.member) return data.member
+        if (data.data) return data.data
+        if (data.items) return data.items
+        return []
+    }
+
     // 1. Charger les notes réelles depuis la BD
     const fetchStudentResults = () => {
         if (studentId) {
@@ -40,7 +51,7 @@ function App() {
             fetch(`http://127.0.0.1:8000/api/courses`)
                 .then(res => res.json())
                 .then(data => {
-                    setCourses(data)
+                    setCourses(normalizeCollection(data))
                     setLoading(false)
                 })
 
@@ -53,8 +64,33 @@ function App() {
         // Liste des QCM disponibles
         fetch(`http://127.0.0.1:8000/api/qcms`)
             .then(res => res.json())
-            .then(data => setQcms(data))
+            .then(data => setQcms(normalizeCollection(data)))
+            .catch(err => {
+                console.error('Erreur chargement qcms:', err)
+                setQcms([])
+            })
     }, [])
+
+    // Grouper les qcms par cours pour l'affichage
+    const groupedQcms = React.useMemo(() => {
+        const arr = Array.isArray(qcms) ? qcms : normalizeCollection(qcms)
+        const groups = {}
+
+        arr.forEach(q => {
+            const courseId = q.cours_id ?? q.course_id ?? q.cours?.id ?? q.course?.id ?? 0
+            const courseTitle = q.cours_title ?? q.course_title ?? q.cours?.title ?? q.course?.title ?? 'Cours inconnu'
+
+            if (!groups[courseId]) groups[courseId] = { course_id: courseId, course_title: courseTitle, qcms: [] }
+
+            groups[courseId].qcms.push({
+                id: q.id,
+                title: q.title ?? q.name ?? 'QCM sans titre',
+                questions_count: q.questions_count ?? (q.questions ? q.questions.length : 0),
+            })
+        })
+
+        return Object.values(groups)
+    }, [qcms])
 
     // --- Logique du QCM ---
     const startQcm = (qcmId) => {
@@ -96,6 +132,7 @@ function App() {
     };
 
     const submitScore = (finalScore) => {
+        if (!activeQcm) return
         console.log(`Envoi du score: ${finalScore} pour QCM ID: ${activeQcm.id}`);
 
         fetch(`http://127.0.0.1:8000/api/students/${studentId}/qcms/${activeQcm.id}/submit`, {
@@ -256,7 +293,7 @@ function App() {
                 <div className="qcm-section">
                     <div className="qcm-header"><h2>📋 QCM Disponibles</h2></div>
                     <div className="qcm-list">
-                        {qcms.map(course => (
+                        {groupedQcms.map(course => (
                             <div key={course.course_id} className="qcm-course">
                                 <h3>{course.course_title}</h3>
                                 <ul>{course.qcms.map(qcm => (
