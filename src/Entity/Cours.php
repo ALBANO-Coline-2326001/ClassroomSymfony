@@ -2,45 +2,49 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\CoursRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CoursRepository::class)]
+#[ApiResource(
+    normalizationContext: ['groups' => ['cours:read']],
+    denormalizationContext: ['groups' => ['cours:write']]
+)]
 class Cours
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['cours:read', 'qcm:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['cours:read', 'qcm:read'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['cours:read'])]
     private ?string $contenu = null;
 
     #[ORM\ManyToOne(inversedBy: 'cours')]
+    #[Groups(['cours:read'])]
     private ?Teacher $teacher = null;
 
-    /**
-     * @var Collection<int, Video>
-     */
     #[ORM\OneToMany(targetEntity: Video::class, mappedBy: 'cours')]
+    #[Groups(['cours:read'])]
     private Collection $videos;
 
-    /**
-     * @var Collection<int, Document>
-     */
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'cours')]
+    #[Groups(['cours:read'])]
     private Collection $documents;
 
-    /**
-     * @var Collection<int, Qcm>
-     */
     #[ORM\OneToMany(targetEntity: Qcm::class, mappedBy: 'cours')]
+    #[Groups(['cours:read'])]
     private Collection $qcms;
 
     public function __construct()

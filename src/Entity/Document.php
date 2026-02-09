@@ -16,6 +16,9 @@ class Document
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $path = null;
+
     #[ORM\ManyToOne(inversedBy: 'documents')]
     private ?Cours $cours = null;
 
@@ -35,6 +38,18 @@ class Document
     public function setTitle(string $title): static
     {
         $this->title = $title;
+
+        return $this;
+    }
+
+    public function getPath(): ?string
+    {
+        return $this->path;
+    }
+
+    public function setPath(?string $path): static
+    {
+        $this->path = $path;
 
         return $this;
     }

@@ -2,35 +2,54 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\QcmRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: QcmRepository::class)]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Post(),
+        new Put(),
+        new Patch(),
+        new Delete(),
+    ],
+    normalizationContext: ['groups' => ['qcm:read']],
+    denormalizationContext: ['groups' => ['qcm:write']],
+)]
 class Qcm
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['qcm:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['qcm:read', 'qcm:write'])]
     private ?string $title = null;
 
     #[ORM\ManyToOne(inversedBy: 'qcms')]
+    #[Groups(['qcm:read', 'qcm:write'])]
     private ?Cours $cours = null;
 
-    /**
-     * @var Collection<int, Question>
-     */
     #[ORM\OneToMany(targetEntity: Question::class, mappedBy: 'qcm')]
+    #[Groups(['qcm:read'])]
     private Collection $questions;
 
-    /**
-     * @var Collection<int, Note>
-     */
     #[ORM\OneToMany(targetEntity: Note::class, mappedBy: 'qcm')]
+    #[Groups(['qcm:read'])]
     private Collection $notes;
 
     public function __construct()

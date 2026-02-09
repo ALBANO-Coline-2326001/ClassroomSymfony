@@ -2,29 +2,36 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\QuestionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: QuestionRepository::class)]
+#[ApiResource(
+    normalizationContext: ['groups' => ['question:read']],
+    denormalizationContext: ['groups' => ['question:write']]
+)]
 class Question
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['question:read', 'qcm:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['question:read', 'question:write', 'qcm:read'])]
     private ?string $entitled = null;
 
     #[ORM\ManyToOne(inversedBy: 'questions')]
+    #[Groups(['question:read', 'question:write'])]
     private ?Qcm $qcm = null;
 
-    /**
-     * @var Collection<int, Answer>
-     */
     #[ORM\OneToMany(targetEntity: Answer::class, mappedBy: 'question')]
+    #[Groups(['question:read', 'qcm:read'])]
     private Collection $answers;
 
     public function __construct()
