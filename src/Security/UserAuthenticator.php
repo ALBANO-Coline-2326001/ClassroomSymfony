@@ -55,7 +55,9 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
         }
 
         if (in_array('ROLE_STUDENT', $user->getRoles(), true)) {
-            return new RedirectResponse('http://localhost:5173/student/');
+            // Récupérer l'ID de l'étudiant pour le passer à React
+            $studentId = $user->getId();
+            return new RedirectResponse('http://localhost:5173/student/' . $studentId);
         }
 
         // Par défaut

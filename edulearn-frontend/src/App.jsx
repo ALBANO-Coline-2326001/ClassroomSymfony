@@ -1,8 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import './App.css'
 
 function App() {
     const [showDetails, setShowDetails] = useState(null)
+    const [expandedCourse, setExpandedCourse] = useState(null)
+    const { studentId } = useParams() // Récupération de l'ID depuis l'URL
+    const [studentInfo, setStudentInfo] = useState(null)
+    const [courses, setCourses] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        // Récupérer les informations de l'étudiant et les cours depuis l'API Symfony
+        if (studentId) {
+            console.log('ID de l\'étudiant connecté:', studentId)
+
+            // Récupérer les informations de l'étudiant
+            fetch(`http://127.0.0.1:8000/api/students/${studentId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la récupération des données')
+                    }
+                    return response.json()
+                })
+                .then(data => {
+                    console.log('Données étudiant:', data)
+                    setStudentInfo(data)
+                })
+                .catch(error => {
+                    console.error('Erreur:', error)
+                })
+
+            // Récupérer tous les cours
+            fetch(`http://127.0.0.1:8000/api/courses`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la récupération des cours')
+                    }
+                    return response.json()
+                })
+                .then(data => {
+                    console.log('Cours:', data)
+                    setCourses(data)
+                    setLoading(false)
+                })
+                .catch(error => {
+                    console.error('Erreur:', error)
+                    setLoading(false)
+                })
+        } else {
+            setLoading(false)
+        }
+    }, [studentId])
 
     const handleLogout = () => {
         localStorage.removeItem('token'); // si vous utilisez un token
@@ -11,30 +60,19 @@ function App() {
         window.location.href = 'http://127.0.0.1:8000';
     };
 
-
-    const videos = [
-        { id: 1, title: 'Introduction à Symfony', teacher: 'Prof. Martin', duration: '45 min' },
-        { id: 2, title: 'Security Bundle', teacher: 'Prof. Dubois', duration: '60 min' },
-        { id: 3, title: 'API Platform', teacher: 'Prof. Bernard', duration: '50 min' },
-        { id: 4, title: 'Doctrine ORM', teacher: 'Prof. Laurent', duration: '55 min' },
-        { id: 5, title: 'Twig Templates', teacher: 'Prof. Sophie', duration: '40 min' }
-    ]
-
-    const documents = [
-        { id: 1, title: 'Guide Symfony 7', teacher: 'Prof. Martin', pages: '25 pages' },
-        { id: 2, title: 'Architecture MVC', teacher: 'Prof. Dubois', pages: '18 pages' },
-        { id: 3, title: 'REST API Best Practices', teacher: 'Prof. Bernard', pages: '30 pages' },
-        { id: 4, title: 'Database Design', teacher: 'Prof. Laurent', pages: '22 pages' },
-        { id: 5, title: 'Frontend avec Twig', teacher: 'Prof. Sophie', pages: '15 pages' }
-    ]
+    const toggleCourse = (courseId) => {
+        setExpandedCourse(expandedCourse === courseId ? null : courseId)
+    }
 
     const toggleDetails = (id) => {
         setShowDetails(showDetails === id ? null : id)
     }
 
-    const takeQCM = (title) => {
-        alert(`🎓 Démarrage du QCM : ${title}\n\n✓ 10 questions\n✓ Durée : 20 minutes\n✓ Note sur 20\n\nBonne chance ! 🍀`)
+    const downloadDocument = (downloadUrl, documentTitle) => {
+        // Utiliser l'URL complète fournie par l'API
+        window.open(`http://127.0.0.1:8000${downloadUrl}`, '_blank')
     }
+
 
     return (
         <>
@@ -51,10 +89,13 @@ function App() {
             </nav>
 
             {/* Hero Section */}
-            {/* Correction : Le hero prend 100% de la largeur, mais le contenu interne est centré */}
             <div className="hero">
                 <div className="hero-content">
-                    <h1>Bienvenue, Étudiant</h1>
+                    <h1>
+                        Bienvenue, {loading ? 'Chargement...' :
+                            studentInfo ? `${studentInfo.first_name} ${studentInfo.last_name}` :
+                            'Étudiant'}
+                    </h1>
                     <p>Accédez à vos cours, documents et QCM</p>
                     <div className="stats">
                         <div className="stat-item">
@@ -74,49 +115,134 @@ function App() {
             </div>
 
             <div className="container">
-                {/* Vidéos */}
+                {/* Tous les Cours */}
                 <div className="carousel-section">
                     <div className="carousel-header">
-                        <h2>📹 Vidéos de Cours</h2>
+                        <h2>📚 Tous les Cours Disponibles</h2>
                     </div>
-                    <div className="carousel">
-                        {videos.map(video => (
-                            <div key={video.id} className="carousel-item">
-                                <div className="carousel-item-video">
-                                    🎬
-                                    <div className="play-btn">▶</div>
-                                </div>
-                                <div className="carousel-item-content">
-                                    <div className="carousel-item-title">{video.title}</div>
-                                    <div className="carousel-item-meta">👨‍🏫 {video.teacher} • ⏱️ {video.duration}</div>
-                                    <button className="btn-take-qcm" onClick={() => takeQCM(video.title)}>
-                                        ✏️ Passer le QCM
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
 
-                {/* Documents */}
-                <div className="carousel-section">
-                    <div className="carousel-header">
-                        <h2>📄 Documents de Cours</h2>
-                    </div>
-                    <div className="carousel">
-                        {documents.map(doc => (
-                            <div key={doc.id} className="carousel-item">
-                                <div className="carousel-item-document">📑</div>
-                                <div className="carousel-item-content">
-                                    <div className="carousel-item-title">{doc.title}</div>
-                                    <div className="carousel-item-meta">👨‍🏫 {doc.teacher} • 📄 {doc.pages}</div>
-                                    <button className="btn-take-qcm" onClick={() => takeQCM(doc.title)}>
-                                        ✏️ Passer le QCM
-                                    </button>
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>Chargement des cours...</div>
+                    ) : courses.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>Aucun cours disponible pour le moment</div>
+                    ) : (
+                        <div className="carousel">
+                            {courses.map(course => (
+                                <div key={course.id} style={{ width: '100%', marginBottom: '1rem' }}>
+                                    <div className="carousel-item" style={{ cursor: 'pointer' }} onClick={() => toggleCourse(course.id)}>
+                                        <div className="carousel-item-document">📖</div>
+                                        <div className="carousel-item-content">
+                                            <div className="carousel-item-title">{course.title}</div>
+                                            <div className="carousel-item-meta">
+                                                👨‍🏫 {course.teacher?.first_name} {course.teacher?.last_name}
+                                                {' • '}
+                                                📹 {course.videos?.length || 0} vidéo(s)
+                                                {' • '}
+                                                📄 {course.documents?.length || 0} document(s)
+                                            </div>
+                                            <button className="btn-take-qcm" onClick={(e) => { e.stopPropagation(); toggleCourse(course.id); }}>
+                                                {expandedCourse === course.id ? '🔼 Masquer' : '🔽 Voir le contenu'}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Contenu du cours expandé */}
+                                    {expandedCourse === course.id && (
+                                        <div style={{
+                                            background: '#f8f9fa',
+                                            padding: '1.5rem',
+                                            borderRadius: '8px',
+                                            marginTop: '0.5rem',
+                                            border: '1px solid #dee2e6'
+                                        }}>
+                                            {/* Description du cours */}
+                                            <div style={{ marginBottom: '1.5rem' }}>
+                                                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#495057' }}>📝 Description</h3>
+                                                <p style={{ color: '#6c757d' }}>{course.contenu}</p>
+                                            </div>
+
+                                            {/* Vidéos */}
+                                            {course.videos && course.videos.length > 0 && (
+                                                <div style={{ marginBottom: '1.5rem' }}>
+                                                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#495057' }}>📹 Vidéos ({course.videos.length})</h3>
+                                                    <div style={{ display: 'grid', gap: '0.75rem' }}>
+                                                        {course.videos.map(video => (
+                                                            <div key={video.id} style={{
+                                                                background: 'white',
+                                                                padding: '1rem',
+                                                                borderRadius: '6px',
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                border: '1px solid #dee2e6'
+                                                            }}>
+                                                                <div>
+                                                                    <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>🎬 {video.title}</div>
+                                                                    <div style={{ fontSize: '0.875rem', color: '#6c757d' }}>
+                                                                        ⏱️ {video.duration} minutes
+                                                                    </div>
+                                                                </div>
+                                                                <a
+                                                                    href={video.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="btn btn-outline-small"
+                                                                    style={{ textDecoration: 'none' }}
+                                                                >
+                                                                    ▶️ Regarder
+                                                                </a>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Documents */}
+                                            {course.documents && course.documents.length > 0 && (
+                                                <div style={{ marginBottom: '1.5rem' }}>
+                                                    <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#495057' }}>📄 Documents ({course.documents.length})</h3>
+                                                    <div style={{ display: 'grid', gap: '0.75rem' }}>
+                                                        {course.documents.map(document => (
+                                                            <div key={document.id} style={{
+                                                                background: 'white',
+                                                                padding: '1rem',
+                                                                borderRadius: '6px',
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                border: '1px solid #dee2e6'
+                                                            }}>
+                                                                <div>
+                                                                    <div style={{ fontWeight: '500' }}>📑 {document.title}</div>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => downloadDocument(document.download_url, document.title)}
+                                                                    className="btn btn-outline-small"
+                                                                >
+                                                                    ⬇️ Télécharger
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Bouton QCM */}
+                                            <div style={{ marginTop: '1.5rem', textAlign: 'center', padding: '1rem', background: 'white', borderRadius: '8px', border: '2px solid #007bff' }}>
+                                                <button
+                                                    className="btn-take-qcm"
+                                                    onClick={() => takeQCM(course.title)}
+                                                    style={{ width: 'auto', padding: '0.75rem 2rem', fontSize: '1.1rem', fontWeight: 'bold' }}
+                                                >
+                                                    ✏️ Passer le QCM sur ce cours
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Mes Résultats */}
