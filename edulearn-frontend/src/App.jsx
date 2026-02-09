@@ -4,13 +4,12 @@ import './App.css'
 
 function App() {
     // --- États pour les données ---
-    const [showDetails, setShowDetails] = useState(null)
     const [expandedCourse, setExpandedCourse] = useState(null)
     const { studentId } = useParams()
     const [studentInfo, setStudentInfo] = useState(null)
     const [courses, setCourses] = useState([])
     const [qcms, setQcms] = useState([])
-    const [dbResults, setDbResults] = useState([]) // Notes réelles de la BD
+    const [dbResults, setDbResults] = useState([])
     const [loading, setLoading] = useState(true)
 
     // --- États pour la Popup QCM ---
@@ -19,21 +18,18 @@ function App() {
     const [score, setScore] = useState(0)
     const [showResult, setShowResult] = useState(false)
 
-    // Utility: normaliser une collection API en tableau
+    // Utility
     const normalizeCollection = (data) => {
         if (!data) return []
         if (Array.isArray(data)) return data
         if (data['hydra:member']) return data['hydra:member']
-        if (data.member) return data.member
-        if (data.data) return data.data
-        if (data.items) return data.items
         return []
     }
 
-    // 1. Charger les notes réelles depuis la BD
+    // 1. Charger les résultats
     const fetchStudentResults = () => {
         if (studentId) {
-            fetch(`http://127.0.0.1:8000/api/students/${studentId}/qcm-results`)
+            fetch(`http://127.0.0.1:8000/api/custom/students/${studentId}/qcm-results`)
                 .then(res => res.json())
                 .then(data => setDbResults(data))
                 .catch(err => console.error("Erreur chargement résultats:", err))
@@ -43,12 +39,12 @@ function App() {
     useEffect(() => {
         if (studentId) {
             // Informations étudiant
-            fetch(`http://127.0.0.1:8000/api/students/${studentId}`)
+            fetch(`http://127.0.0.1:8000/api/custom/students/${studentId}`)
                 .then(res => res.json())
                 .then(data => setStudentInfo(data))
 
             // Liste des cours
-            fetch(`http://127.0.0.1:8000/api/courses`)
+            fetch(`http://127.0.0.1:8000/api/custom/courses`)
                 .then(res => res.json())
                 .then(data => {
                     setCourses(normalizeCollection(data))
@@ -62,106 +58,80 @@ function App() {
 
     useEffect(() => {
         // Liste des QCM disponibles
-        fetch(`http://127.0.0.1:8000/api/qcms`)
+        fetch(`http://127.0.0.1:8000/api/custom/qcms`)
             .then(res => res.json())
-            .then(data => setQcms(normalizeCollection(data)))
+            .then(data => {
+                const normalized = normalizeCollection(data)
+                setQcms(normalized)
+            })
             .catch(err => {
                 console.error('Erreur chargement qcms:', err)
                 setQcms([])
             })
     }, [])
 
-    // Grouper les qcms par cours pour l'affichage
-    const groupedQcms = React.useMemo(() => {
-        const arr = Array.isArray(qcms) ? qcms : normalizeCollection(qcms)
-        const groups = {}
-
-        arr.forEach(q => {
-            const courseId = q.cours_id ?? q.course_id ?? q.cours?.id ?? q.course?.id ?? 0
-            const courseTitle = q.cours_title ?? q.course_title ?? q.cours?.title ?? q.course?.title ?? 'Cours inconnu'
-
-            if (!groups[courseId]) groups[courseId] = { course_id: courseId, course_title: courseTitle, qcms: [] }
-
-            groups[courseId].qcms.push({
-                id: q.id,
-                title: q.title ?? q.name ?? 'QCM sans titre',
-                questions_count: q.questions_count ?? (q.questions ? q.questions.length : 0),
-            })
-        })
-
-        return Object.values(groups)
-    }, [qcms])
+    // CORRECTION : Le backend renvoie déjà les QCM groupés par cours.
+    // On n'a pas besoin de refaire le tri ici, on passe direct.
+    const groupedQcms = qcms;
 
     // --- Logique du QCM ---
     const startQcm = (qcmId) => {
-        fetch(`http://127.0.0.1:8000/api/qcms/${qcmId}`)
+        fetch(`http://127.0.0.1:8000/api/custom/qcms/${qcmId}`)
             .then(res => res.json())
             .then(data => {
+                console.log('DEBUG: QCM chargé (custom):', data)
                 setActiveQcm(data)
                 setCurrentQuestionIndex(0)
                 setScore(0)
                 setShowResult(false)
             })
+            .catch(err => console.error('Erreur chargement qcm:', err))
     }
 
-    const handleAnswerSelection = (isCorrect) => {
-        const newScore = isCorrect ? score + 1 : score
-        if (isCorrect) setScore(newScore)
+    const handleAnswerSelection = (answer) => {
+        console.log("--- CLIC RÉPONSE ---", answer);
 
-        const nextQuestion = currentQuestionIndex + 1
-        if (nextQuestion < activeQcm.questions.length) {
-            setCurrentQuestionIndex(nextQuestion)
+        // Validation robuste (booléen ou entier 1)
+        const isCorrect = (answer.is_correct === true) || (answer.is_correct_int === 1);
+
+        console.log("VERDICT :", isCorrect ? "✅ JUSTE" : "❌ FAUX");
+
+        const newScore = isCorrect ? score + 1 : score;
+        if (isCorrect) setScore(newScore);
+
+        const nextQuestion = currentQuestionIndex + 1;
+        if (activeQcm && activeQcm.questions && nextQuestion < activeQcm.questions.length) {
+            setCurrentQuestionIndex(nextQuestion);
         } else {
-            setShowResult(true)
-            submitScore(newScore) // Enregistrement automatique
+            setShowResult(true);
+            submitScore(newScore);
         }
     }
-
-    // Fonction dédiée pour recharger uniquement les résultats
-    const refreshResults = () => {
-        if (studentId) {
-            console.log("Rafraîchissement des résultats pour l'étudiant", studentId);
-            fetch(`http://127.0.0.1:8000/api/students/${studentId}/qcm-results`)
-                .then(res => res.json())
-                .then(data => {
-                    console.log("Nouveaux résultats reçus:", data);
-                    setDbResults(data);
-                })
-                .catch(err => console.error("Erreur refresh:", err));
-        }
-    };
 
     const submitScore = (finalScore) => {
         if (!activeQcm) return
-        console.log(`Envoi du score: ${finalScore} pour QCM ID: ${activeQcm.id}`);
+        console.log(`Envoi du score: ${finalScore}`);
 
-        fetch(`http://127.0.0.1:8000/api/students/${studentId}/qcms/${activeQcm.id}/submit`, {
+        fetch(`http://127.0.0.1:8000/api/custom/students/${studentId}/qcms/${activeQcm.id}/submit`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ score: finalScore })
         })
-            .then(response => {
-                if (!response.ok) throw new Error('Erreur réseau lors de la sauvegarde');
-                return response.json();
+            .then(res => {
+                if (!res.ok) throw new Error('Erreur sauvegarde');
+                return res.json();
             })
-            .then(data => {
-                console.log("Sauvegarde réussie:", data);
-                refreshResults(); // Appel immédiat pour mettre à jour le tableau
+            .then(() => {
+                console.log("Sauvegarde OK");
+                fetchStudentResults();
             })
-            .catch(err => {
-                console.error("Erreur sauvegarde:", err);
-                alert("Erreur lors de l'enregistrement du score. Vérifiez la console.");
-            });
+            .catch(err => console.error("Erreur sauvegarde:", err));
     }
 
-    // --- Fonctions utilitaires ---
+    // --- Utils ---
     const closePopup = () => setActiveQcm(null)
     const handleLogout = () => { localStorage.removeItem('token'); window.location.href = 'http://127.0.0.1:8000' }
     const toggleCourse = (id) => setExpandedCourse(expandedCourse === id ? null : id)
-    const toggleDetails = (id) => setShowDetails(showDetails === id ? null : id)
     const downloadDocument = (url) => window.open(`http://127.0.0.1:8000${url}`, '_blank')
 
     return (
@@ -190,7 +160,7 @@ function App() {
             </div>
 
             <div className="container">
-                {/* 1. SECTION TOUS LES COURS (Vidéos + Documents) */}
+                {/* 1. SECTION TOUS LES COURS */}
                 <div className="carousel-section">
                     <div className="carousel-header"><h2>📚 Tous les Cours Disponibles</h2></div>
                     {loading ? <p>Chargement...</p> : (
@@ -216,7 +186,6 @@ function App() {
                                         <div style={{ background: '#f8f9fa', padding: '1.5rem', borderRadius: '8px', marginTop: '0.5rem', border: '1px solid #dee2e6' }}>
                                             <h3 style={{ fontSize: '1.2rem' }}>📝 Description</h3>
                                             <p>{course.contenu}</p>
-
                                             {course.videos?.length > 0 && (
                                                 <div style={{ marginTop: '1rem' }}>
                                                     <h4>📹 Vidéos</h4>
@@ -228,7 +197,6 @@ function App() {
                                                     ))}
                                                 </div>
                                             )}
-
                                             {course.documents?.length > 0 && (
                                                 <div style={{ marginTop: '1rem' }}>
                                                     <h4>📄 Documents</h4>
@@ -253,7 +221,6 @@ function App() {
                     <div className="results-header"><h2>📊 Mes Résultats (Base de Données)</h2></div>
                     <table className="results-table">
                         <thead>
-                        {/* Tout sur une ligne ou collé pour éviter les "whitespace nodes" */}
                         <tr>
                             <th>Cours</th>
                             <th>QCM</th>
@@ -268,8 +235,6 @@ function App() {
                             <tr><td colSpan="6" style={{textAlign:'center', padding:'20px'}}>Aucun résultat enregistré.</td></tr>
                         ) : dbResults.map(res => {
                             const noteSur20 = res.total_questions > 0 ? ((res.score / res.total_questions) * 20).toFixed(1) : 0;
-
-                            // CORRECTION ICI : Pas de <React.Fragment>, key sur le tr
                             return (
                                 <tr key={res.id}>
                                     <td><span className="course-tag">📘 {res.course_title}</span></td>
@@ -278,9 +243,9 @@ function App() {
                                     <td>{res.score} / {res.total_questions}</td>
                                     <td><strong>{noteSur20}/20</strong></td>
                                     <td>
-                        <span className={`score-badge ${res.score >= res.total_questions / 2 ? 'score-excellent' : 'score-average'}`}>
-                            {res.score >= res.total_questions / 2 ? 'Validé ✅' : 'Non validé ❌'}
-                        </span>
+                                        <span className={`score-badge ${res.score >= res.total_questions / 2 ? 'score-excellent' : 'score-average'}`}>
+                                            {res.score >= res.total_questions / 2 ? 'Validé ✅' : 'Non validé ❌'}
+                                        </span>
                                     </td>
                                 </tr>
                             );
@@ -316,18 +281,25 @@ function App() {
                         {!showResult ? (
                             <>
                                 <h2>{activeQcm.title}</h2>
-                                <p className="qcm-step">Question {currentQuestionIndex + 1} / {activeQcm.questions.length}</p>
-                                <h4 className="qcm-question">{activeQcm.questions[currentQuestionIndex].text}</h4>
+                                <p className="qcm-step">Question {currentQuestionIndex + 1} / {activeQcm.questions ? activeQcm.questions.length : 0}</p>
+                                <h4 className="qcm-question">
+                                    {activeQcm.questions && activeQcm.questions[currentQuestionIndex]
+                                        ? (activeQcm.questions[currentQuestionIndex].text || activeQcm.questions[currentQuestionIndex].entitled || 'Question sans titre')
+                                        : 'Chargement...'}
+                                </h4>
                                 <div className="qcm-answers">
-                                    {activeQcm.questions[currentQuestionIndex].answers.map((ans) => (
-                                        <button key={ans.id} className="qcm-answer-btn" onClick={() => handleAnswerSelection(ans.is_correct)}>{ans.text}</button>
-                                    ))}
+                                    {activeQcm.questions && activeQcm.questions[currentQuestionIndex] && activeQcm.questions[currentQuestionIndex].answers
+                                        ? activeQcm.questions[currentQuestionIndex].answers.map((ans) => (
+                                            <button key={ans.id} className="qcm-answer-btn" onClick={() => handleAnswerSelection(ans)}>{ans.text}</button>
+                                        ))
+                                        : <p>Aucune réponse disponible</p>
+                                    }
                                 </div>
                             </>
                         ) : (
                             <div className="qcm-result-screen">
                                 <h2>Terminé ! 🎉</h2>
-                                <div className="qcm-score-circle"><span className="qcm-score-num">{score}</span> / {activeQcm.questions.length}</div>
+                                <div className="qcm-score-circle"><span className="qcm-score-num">{score}</span> / {activeQcm.questions ? activeQcm.questions.length : 0}</div>
                                 <p>Ton score a été automatiquement enregistré.</p>
                                 <button className="btn-danger" onClick={closePopup}>Quitter</button>
                             </div>
