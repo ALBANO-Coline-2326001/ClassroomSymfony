@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notes des étudiants{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 fw-bold"><i class="fas fa-clipboard-check text-info me-2"></i>Notes des Étudiants</h1>
+                <p class="text-muted">Vue d'ensemble des résultats aux QCM de vos cours.</p>
+            </div>
+            <a href="{{ path('teacher_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Retour Dashboard
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                        <tr>
+                            <th class="ps-4">Étudiant</th>
+                            <th>Cours / QCM</th>
+                            <th>Date</th>
+                            <th class="text-center">Score</th>
+                            <th class="text-end pe-4">Statut</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for note in notes %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar bg-primary text-white rounded-circle me-3 d-flex justify-content-center align-items-center" style="width: 40px; height: 40px;">
+                                            {{ note.student.firstName|first }}{{ note.student.lastName|first }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ note.student.firstName }} {{ note.student.lastName }}</div>
+                                            <div class="small text-muted">{{ note.student.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="badge bg-light text-dark border mb-1">
+                                        {{ note.qcm.cours.title }}
+                                    </div>
+                                    <div class="small fw-bold text-primary">
+                                        {{ note.qcm.title }}
+                                    </div>
+                                </td>
+                                <td class="text-muted small">
+                                    <i class="far fa-clock me-1"></i> {{ note.attemptedAt|date('d/m/Y H:i') }}
+                                </td>
+                                <td class="text-center">
+                                    <span class="h6 fw-bold">{{ note.score }}/20</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    {% if note.score >= 15 %}
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-3">Excellent</span>
+                                    {% elseif note.score >= 10 %}
+                                        <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Validé</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-3">Échec</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3 text-secondary opacity-50"></i><br>
+                                    Aucune note enregistrée pour le moment.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

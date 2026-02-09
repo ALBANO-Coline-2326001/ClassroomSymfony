@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Note;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +15,21 @@ class NoteRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Note::class);
+    }
+
+    /**
+     * Récupère les notes des cours dispensés par un professeur spécifique
+     */
+    public function findByTeacher(User $teacher): array
+    {
+        return $this->createQueryBuilder('n')
+            ->join('n.qcm', 'q')
+            ->join('q.cours', 'c')
+            ->where('c.teacher = :teacher')
+            ->setParameter('teacher', $teacher)
+            ->orderBy('n.attemptedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**
