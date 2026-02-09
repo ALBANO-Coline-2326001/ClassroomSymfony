@@ -4,34 +4,48 @@
 
 {% block body %}
     <div class="container mt-5">
-        <h1>Bienvenue {{ user.email }}</h1>
-        <p>Vous êtes connecté en tant que professeur.</p>
+        <div class="alert alert-primary">
+            <h1 class="h3">Bienvenue, Professeur {{ user.lastName }}</h1>
+            <p class="mb-0">Gérez vos contenus pédagogiques et suivez les résultats.</p>
+        </div>
 
-        <div class="row mt-4">
+        <div class="row mt-4 g-4">
             <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">📚 Mes Cours</h5>
-                        {# <a href="{{ path('course_index') }}" class="btn btn-primary">Voir les cours</a> #}
-                        <button class="btn btn-primary" disabled>Voir les cours (à venir)</button>
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card-body text-center p-5">
+                        <div class="text-primary mb-3"><i class="fas fa-book fa-3x"></i></div>
+                        <h5 class="card-title fw-bold">Mes Cours</h5>
+                        <p class="text-muted">Gérez vos cours, ajoutez des vidéos et des documents.</p>
+                        <a href="{{ path('teacher_cours') }}" class="btn btn-primary w-100 stretched-link">
+                            Gérer mes cours
+                        </a>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card-body text-center p-5">
+                        <div class="text-success mb-3"><i class="fas fa-plus-circle fa-3x"></i></div>
+                        <h5 class="card-title fw-bold">Créer un cours</h5>
+                        <p class="text-muted">Ajoutez un nouveau module d'apprentissage.</p>
+                        <a href="{{ path('app_cours_new') }}" class="btn btn-success w-100 stretched-link">
+                            Nouveau cours
+                        </a>
                     </div>
                 </div>
             </div>
+
             <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">📝 Créer un cours</h5>
-                        {# <a href="{{ path('course_new') }}" class="btn btn-success">Nouveau cours</a> #}
-                        <button class="btn btn-success" disabled>Nouveau cours (à venir)</button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">📊 Résultats</h5>
-                        {# <a href="{{ path('quiz_results') }}" class="btn btn-info">Voir les notes</a> #}
-                        <button class="btn btn-info" disabled>Voir les notes (à venir)</button>
+                <div class="card h-100 border-0 shadow-sm hover-card">
+                    <div class="card-body text-center p-5">
+                        <div class="text-info mb-3"><i class="fas fa-chart-bar fa-3x"></i></div>
+                        <h5 class="card-title fw-bold">Résultats</h5>
+                        <p class="text-muted">Suivez les performances de vos étudiants.</p>
+                        <a href="{{ path('teacher_notes') }}" class="btn btn-info w-100 text-white stretched-link">
+                            Voir les notes
+                        </a>
                     </div>
                 </div>
             </div>

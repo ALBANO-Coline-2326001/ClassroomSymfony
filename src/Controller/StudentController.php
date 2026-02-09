@@ -13,7 +13,6 @@ class StudentController extends AbstractController
     #[Route('/student/{reactRouting}', name: 'student_app', requirements: ['reactRouting' => '.*'], defaults: ['reactRouting' => null])]
     public function index(): Response
     {
-        // Servir le build React
         $reactBuildPath = $this->getParameter('kernel.project_dir') . '/student-app/dist/index.html';
 
         if (!file_exists($reactBuildPath)) {

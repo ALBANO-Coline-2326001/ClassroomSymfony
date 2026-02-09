@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un nouveau cours{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Nouveau Cours</h3>
+                </div>
+                <div class="card-body p-4">
+                    {{ form_start(form) }}
+
+                    <div class="mb-3">
+                        {{ form_label(form.title, "Titre du cours") }}
+                        {{ form_widget(form.title) }}
+                        <div class="text-danger">{{ form_errors(form.title) }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.contenu) }}
+                        {{ form_widget(form.contenu) }}
+                    </div>
+
+                    <hr>
+                    <h5 class="text-muted mb-3"><i class="fas fa-paperclip me-2"></i>Fichiers joints</h5>
+
+                    <div class="mb-3">
+                        {{ form_label(form.documentFiles) }}
+                        {{ form_widget(form.documentFiles) }}
+                        <small class="text-muted">Vous pouvez sélectionner plusieurs PDF (Ctrl+Click)</small>
+                        <div class="text-danger">{{ form_errors(form.documentFiles) }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.videoFiles) }}
+                        {{ form_widget(form.videoFiles) }}
+                        <small class="text-muted">Vous pouvez sélectionner plusieurs MP4</small>
+                        <div class="text-danger">{{ form_errors(form.videoFiles) }}</div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg fw-bold">
+                            <i class="fas fa-save me-2"></i> Créer le cours
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
