@@ -20,3 +20,405 @@ body {
     padding: 0;
     text-align: left; /* Vite centre souvent le texte par défaut, on remet à gauche */
 }
+
+/* Ajout de styles pour améliorer l'apparence des sections et des boutons */
+
+/* Style pour la navigation */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #007bff;
+    color: white;
+    padding: 1rem 2rem;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nav-buttons .btn {
+    margin-left: 1rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: white;
+    border: 1px solid white;
+}
+
+/* Style pour la section Hero */
+.hero {
+    background: linear-gradient(135deg, #007bff, #6610f2);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.hero-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #f8f9fa;
+}
+
+/* Style pour les sections */
+.container {
+    padding: 2rem;
+    background-color: #f8f9fa;
+}
+
+.carousel-section, .results-section, .qcm-section {
+    margin-bottom: 2rem;
+}
+
+.carousel-header, .results-header, .qcm-header {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #343a40;
+}
+
+.carousel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.carousel-item {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.carousel-item:hover {
+    transform: translateY(-5px);
+}
+
+.carousel-item-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.carousel-item-meta {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.btn-take-qcm {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-take-qcm:hover {
+    background-color: #218838;
+}
+
+/* Style pour les tableaux */
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.results-table th, .results-table td {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.results-table th {
+    background-color: #f1f1f1;
+    font-weight: bold;
+}
+
+.details-cell {
+    background-color: #f8f9fa;
+    padding: 1rem;
+}
+
+/* Style pour les badges de score */
+.score-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: bold;
+    color: white;
+}
+
+.score-excellent {
+    background-color: #28a745;
+}
+
+.score-good {
+    background-color: #ffc107;
+    color: black;
+}
+
+.score-average {
+    background-color: #17a2b8;
+}
+
+.qcm-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.qcm-course {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dee2e6;
+}
+
+.qcm-course h3 {
+    margin-bottom: 1rem;
+    color: #343a40;
+}
+
+.qcm-course ul {
+    list-style: none;
+    padding: 0;
+}
+
+.qcm-course li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.qcm-course li:last-child {
+    border-bottom: none;
+}
+
+.qcm-course button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.qcm-course button:hover {
+    background-color: #0056b3;
+}
+
+/* Styles pour la Popup QCM */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+.question-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.answers-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.answer-btn {
+    padding: 12px;
+    text-align: left;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.answer-btn:hover {
+    background: #f0f7ff;
+    border-color: #007bff;
+}
+
+.quiz-progress {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.result-container {
+    text-align: center;
+}
+
+.result-score {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #28a745;
+    margin: 1rem 0;
+}
+
+/* --- Styles Popup QCM --- */
+.qcm-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.qcm-popup-content {
+    background: white;
+    width: 90%;
+    max-width: 600px;
+    padding: 30px;
+    border-radius: 15px;
+    position: relative;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+}
+
+.qcm-popup-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    border: none;
+    background: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+}
+
+.qcm-step {
+    color: #6610f2;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.qcm-question {
+    font-size: 1.3rem;
+    margin: 20px 0;
+    color: #333;
+}
+
+.qcm-answers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.qcm-answer-btn {
+    padding: 15px;
+    text-align: left;
+    border: 2px solid #eee;
+    background: #fdfdfd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+.qcm-answer-btn:hover {
+    border-color: #007bff;
+    background: #f0f7ff;
+}
+
+.qcm-result-screen {
+    text-align: center;
+    padding: 20px;
+}
+
+.qcm-score-circle {
+    margin: 20px 0;
+    font-size: 3rem;
+}
+
+.qcm-score-num {
+    font-weight: bold;
+    color: #28a745;
+}
+
