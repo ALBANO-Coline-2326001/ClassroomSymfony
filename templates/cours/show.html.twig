@@ -107,11 +107,47 @@
                                         </a>
 
                                         {% if is_granted('ROLE_TEACHER') and cours.teacher == app.user %}
-                                            <a href="{{ path('app_document_generate_qcm', {'id': doc.id}) }}"
-                                               class="btn btn-sm btn-success text-white"
-                                               onclick="return confirm('Générer un QCM peut prendre quelques secondes. Confirmer ?');">
+                                            <button type="button" class="btn btn-sm btn-success text-white" data-bs-toggle="modal" data-bs-target="#generateModal{{ doc.id }}">
                                                 <i class="fas fa-robot me-1"></i> Générer QCM via IA
-                                            </a>
+                                            </button>
+
+                                            <div class="modal fade" id="generateModal{{ doc.id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <form action="{{ path('app_document_generate_qcm', {'id': doc.id}) }}" method="post">
+                                                            <div class="modal-header bg-success text-white">
+                                                                <h5 class="modal-title"><i class="fas fa-brain me-2"></i>Configuration de l'IA</h5>
+                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+
+                                                            <div class="modal-body">
+                                                                <p class="text-muted small">L'IA va analyser <strong>{{ doc.title }}</strong> pour créer un test.</p>
+
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-bold">Type de questions</label>
+                                                                    <select name="type" class="form-select">
+                                                                        <option value="qcm" selected>QCM (4 choix)</option>
+                                                                        <option value="vrai_faux">Vrai ou Faux</option>
+                                                                    </select>
+                                                                </div>
+
+                                                                <div class="mb-3">
+                                                                    <label class="form-label fw-bold">Nombre de questions</label>
+                                                                    <input type="number" name="nb_questions" class="form-control" value="10" min="1" max="20">
+                                                                    <div class="form-text">Entre 1 et 20 questions.</div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                                <button type="submit" class="btn btn-success" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Génération...'">
+                                                                    Lancer la génération
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         {% endif %}
                                     </div>
                                 </div>

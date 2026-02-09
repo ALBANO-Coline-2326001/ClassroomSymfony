@@ -12,31 +12,44 @@ class MistralService
         #[Autowire('%env(MISTRAL_API_KEY)%')] private string $apiKey
     ) {}
 
-    public function generateQcmFromText(string $text): array
+    public function generateQcmFromText(string $text, int $nbQuestions = 10, string $type = 'qcm'): array
     {
+        $text = substr($text, 0, 100000);
 
-        $text = substr($text, 0, 20000);
-
-        $prompt = <<<EOT
-            Tu es un expert pédagogique. Analyse le texte suivant et génère un QCM de 10 questions pertinentes.
-            
-            Règles strictes :
-            1. La sortie DOIT être uniquement un JSON valide. Pas de markdown (```json), pas de texte avant ou après.
-            2. Structure attendue :
-            [
-                {
-                    "question": "L'intitulé de la question",
+        // Adaptation des consignes selon le type
+        if ($type === 'vrai_faux') {
+            $typeInstruction = "Chaque question doit être une affirmation. Les réponses doivent être uniquement 'Vrai' et 'Faux'.";
+            $answersInstruction = '
+                    "answers": [
+                        {"text": "Vrai", "isCorrect": true},
+                        {"text": "Faux", "isCorrect": false}
+                    ]';
+        } else {
+            $typeInstruction = "Chaque question doit avoir 4 choix de réponse.";
+            $answersInstruction = '
                     "answers": [
                         {"text": "Réponse A", "isCorrect": true},
                         {"text": "Réponse B", "isCorrect": false},
                         {"text": "Réponse C", "isCorrect": false},
                         {"text": "Réponse D", "isCorrect": false}
-                    ]
+                    ]';
+        }
+
+        $prompt = <<<EOT
+            Tu es un expert pédagogique. Analyse le texte suivant et génère un questionnaire de $nbQuestions questions pertinentes.
+            
+            Règles strictes :
+            1. $typeInstruction
+            2. La sortie DOIT être uniquement un JSON valide. Pas de markdown.
+            3. Structure attendue pour chaque question :
+            [
+                {
+                    "question": "L'intitulé de la question",
+                    $answersInstruction
                 }
             ]
-            3. Il doit y avoir exactement une bonne réponse par question.
-            4. Utilise EXACTEMENT les clés "question", "answers", "text", "isCorrect".
-            5. Renvoie UNIQUEMENT le JSON. Pas de "Voici le JSON", pas de markdown ```json.
+            4. Il doit y avoir exactement une bonne réponse par question.
+            5. Renvoie UNIQUEMENT le JSON pur.
             
             Texte à analyser :
             $text
@@ -61,6 +74,5 @@ EOT;
         $rawJson = str_replace(['```json', '```'], '', $rawJson);
 
         return json_decode($rawJson, true) ?? [];
-
     }
 }
