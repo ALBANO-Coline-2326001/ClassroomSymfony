@@ -7,7 +7,7 @@ use App\Entity\Document;
 use App\Entity\Video;
 use App\Form\CoursType;
 use App\Repository\CoursRepository;
-use App\Service\GeminiService;
+use App\Service\GroqService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -107,11 +107,11 @@ final class CoursController extends AbstractController
 
     #[Route('/cours/{id}', name: 'app_cours_show')]
     #[IsGranted('ROLE_USER')]
-    public function show(Cours $cours, GeminiService $geminiService): Response
+    public function show(Cours $cours, GroqService $groqService): Response
     {
         return $this->render('cours/show.html.twig', [
             'cours' => $cours,
-            'hasGemini' => $geminiService->isConfigured(),
+            'hasAi' => $groqService->isConfigured(),
         ]);
     }
 }

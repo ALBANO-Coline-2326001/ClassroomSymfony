@@ -6,7 +6,7 @@ use App\Entity\Answer;
 use App\Entity\Qcm;
 use App\Entity\Question;
 use App\Entity\Video;
-use App\Service\GeminiService;
+use App\Service\GroqService; // On utilise le nouveau service
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,46 +20,49 @@ class VideoQcmController extends AbstractController
     #[Route('/video/{id}/generate-ai', name: 'app_video_generate_ai', methods: ['POST'])]
     public function generate(
         Video $video,
-        GeminiService $geminiService,
+        GroqService $groqService,
         EntityManagerInterface $em,
         Request $request
     ): Response
     {
-        if (!$geminiService->isConfigured()) {
-            $this->addFlash('warning', 'Clé API Gemini manquante.');
+        // 1. Vérif clé API
+        if (!$groqService->isConfigured()) {
+            $this->addFlash('warning', 'Clé API Groq manquante.');
             return $this->redirectToRoute('app_cours_show', ['id' => $video->getCours()->getId()]);
         }
 
-        set_time_limit(600);
-
+        // 2. Paramètres
         $nbQuestions = (int) $request->request->get('nb_questions', 10);
         $type = $request->request->get('type', 'qcm');
 
-        if ($nbQuestions < 1 || $nbQuestions > 20) $nbQuestions = 10;
-
+        // 3. Récupération du fichier physique
         $projectDir = $this->getParameter('kernel.project_dir');
         $filePath = $projectDir . '/public/assets/video/' . $video->getUrl();
 
         if (!file_exists($filePath)) {
-            dd("ERREUR CRITIQUE : Le fichier vidéo n'existe pas au chemin : " . $filePath);
-        }
-
-        if (!file_exists($filePath)) {
-            $this->addFlash('danger', 'Vidéo introuvable.');
+            $this->addFlash('danger', 'Fichier vidéo introuvable sur le serveur.');
             return $this->redirectToRoute('app_cours_show', ['id' => $video->getCours()->getId()]);
         }
 
-        $qcmData = $geminiService->generateQcmFromVideo($filePath, $nbQuestions, $type);
+        // ⚠️ Attention : L'API Whisper limite souvent les fichiers à ~25Mo.
+        // Si tes vidéos sont lourdes, ça plantera ici sans ffmpeg.
+        if (filesize($filePath) > 25 * 1024 * 1024) {
+            $this->addFlash('warning', 'Vidéo trop lourde pour l\'IA (>25Mo).');
+            return $this->redirectToRoute('app_cours_show', ['id' => $video->getCours()->getId()]);
+        }
+
+        // 4. Appel Magique au Service
+        // Le service va : Lire la vidéo -> Transcrire en texte -> Générer le JSON
+        $qcmData = $groqService->generateQcmFromVideoFile($filePath, $nbQuestions, $type);
 
         if (empty($qcmData)) {
-            $this->addFlash('danger', 'L\'IA n\'a pas pu analyser la vidéo.');
+            $this->addFlash('danger', 'Échec de la génération (Transcription ou IA vide).');
             return $this->redirectToRoute('app_cours_show', ['id' => $video->getCours()->getId()]);
         }
 
-        $typeLabel = ($type === 'vrai_faux') ? 'Vrai/Faux' : 'QCM';
-
+        // 5. Sauvegarde (Classique Doctrine)
         $qcm = new Qcm();
-        $qcm->setTitle("Vidéo $typeLabel IA ($nbQuestions q.) : " . $video->getTitle());
+        $qcm->setTitle("Quiz IA (" . ucfirst($type) . ") : " . $video->getTitle());
         $qcm->setCours($video->getCours());
         $em->persist($qcm);
 
@@ -82,7 +85,7 @@ class VideoQcmController extends AbstractController
         }
 
         $em->flush();
-        $this->addFlash('success', 'QCM vidéo généré avec succès !');
+        $this->addFlash('success', 'QCM généré avec succès via Groq (Whisper + Llama) ! 🚀');
 
         return $this->redirectToRoute('app_cours_show', ['id' => $video->getCours()->getId()]);
     }
