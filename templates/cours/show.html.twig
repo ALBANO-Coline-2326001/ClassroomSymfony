@@ -4,6 +4,7 @@
 
 {% block body %}
     <div class="container py-4">
+        {# Navigation #}
         {% if is_granted('ROLE_TEACHER') and cours.teacher == app.user %}
             <a href="{{ path('teacher_cours') }}" class="btn btn-link text-muted mb-3"><i class="fas fa-arrow-left"></i> Retour à mes cours</a>
         {% else %}
@@ -11,6 +12,7 @@
         {% endif %}
 
         <div class="row">
+            {# COLONNE GAUCHE : Contenu + Vidéos #}
             <div class="col-lg-8">
                 <div class="d-flex justify-content-between align-items-start">
                     <h1 class="fw-bold mb-4">{{ cours.title }}</h1>
@@ -21,6 +23,7 @@
 
                 <p class="lead text-muted">{{ cours.contenu }}</p>
 
+                {# SECTION VIDÉOS #}
                 <h4 class="mt-5 mb-3"><i class="fas fa-play-circle text-primary"></i> Vidéos du cours</h4>
 
                 {% for video in cours.videos %}
@@ -34,37 +37,36 @@
                                 {% endif %}
                             </div>
 
-                            {# 2. Les Boutons d'action #}
                             <div class="d-flex gap-2">
-
-                                {# Bouton REGARDER (Toujours là) #}
+                                {# Bouton REGARDER #}
                                 <a href="{{ asset('assets/video/' ~ video.url) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-play me-1"></i> Regarder
                                 </a>
 
-                                {# --- ZONE INTELLIGENTE GEMINI --- #}
+                                {# GESTION PROFESSEUR #}
                                 {% if is_granted('ROLE_TEACHER') and cours.teacher == app.user %}
 
-                                    {% if hasGemini %}
-                                        {# CAS 1 : J'AI UNE CLÉ GEMINI -> J'AFFICHE LE BOUTON ET LA MODALE #}
+                                    {% if hasAi is defined and hasAi %}
 
-                                        {# Le Bouton qui ouvre la modale #}
-                                        <button type="button" class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#videoGenerateModal{{ video.id }}">
-                                            <i class="fas fa-magic me-1"></i> Générer QCM
+                                        <button type="button" class="btn btn-sm btn-dark text-white fw-bold" data-bs-toggle="modal" data-bs-target="#videoGenerateModal{{ video.id }}">
+                                            <i class="fas fa-brain me-1"></i> Générer QCM (Grok)
                                         </button>
 
-                                        {# La Modale de configuration (Cachée par défaut) #}
+                                        {# MODALE GROK #}
                                         <div class="modal fade" id="videoGenerateModal{{ video.id }}" tabindex="-1" aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
+                                                    {# L'action pointe bien vers ta nouvelle route #}
                                                     <form action="{{ path('app_video_generate_ai', {'id': video.id}) }}" method="post">
-                                                        <div class="modal-header bg-warning">
-                                                            <h5 class="modal-title text-dark"><i class="fas fa-robot me-2"></i>IA Vidéo (Gemini)</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <div class="modal-header bg-dark text-white">
+                                                            <h5 class="modal-title"><i class="fas fa-robot me-2"></i>IA Grok & Whisper</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
 
                                                         <div class="modal-body">
-                                                            <p class="text-muted small">Gemini va visionner la vidéo <strong>{{ video.title }}</strong> pour créer un test.</p>
+                                                            <div class="alert alert-info small">
+                                                                <i class="fas fa-info-circle"></i> Grok va <strong>écouter</strong> la vidéo "{{ video.title }}" et générer un test.
+                                                            </div>
 
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">Type de questions</label>
@@ -83,8 +85,8 @@
 
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                                            <button type="submit" class="btn btn-warning fw-bold" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Analyse...'">
-                                                                Lancer l'analyse
+                                                            <button type="submit" class="btn btn-dark fw-bold" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Analyse en cours...'">
+                                                                <i class="fas fa-bolt text-warning"></i> Lancer Grok
                                                             </button>
                                                         </div>
                                                     </form>
@@ -93,18 +95,15 @@
                                         </div>
 
                                     {% else %}
-                                        {# CAS 2 : PAS DE CLÉ GEMINI -> BOUTON GRISÉ (TOOLTIP OPTIONNEL) #}
-                                        <button class="btn btn-sm btn-secondary" disabled title="Clé API Gemini manquante">
-                                            <i class="fas fa-magic me-1"></i> IA non dispo
+                                        {# Si pas de clé API #}
+                                        <button class="btn btn-sm btn-secondary" disabled title="Clé API Grok manquante">
+                                            <i class="fas fa-brain me-1"></i> IA non dispo
                                         </button>
                                     {% endif %}
 
-                                {% endif %}
-                                {# --- FIN ZONE GEMINI --- #}
-
-                                {# Bouton SUPPRIMER #}
-                                {% if is_granted('ROLE_TEACHER') and cours.teacher == app.user %}
+                                    {# Bouton SUPPRIMER #}
                                     <button class="btn btn-sm btn-outline-danger" title="Supprimer la vidéo"><i class="fas fa-trash"></i></button>
+
                                 {% endif %}
                             </div>
                         </div>
@@ -115,6 +114,7 @@
                     </div>
                 {% endfor %}
 
+                {# SECTION LISTE DES QCMs #}
                 <hr class="my-5">
                 <h4 class="mb-3"><i class="fas fa-tasks text-success"></i> QCMs disponibles</h4>
 
@@ -125,7 +125,6 @@
                                 <div class="card-body">
                                     <h5 class="card-title text-success" style="font-size: 1rem;">{{ qcm.title }}</h5>
                                     <p class="card-text text-muted small">{{ qcm.questions|length }} questions générées</p>
-
                                     <div class="d-grid gap-2 mt-3">
                                         <a href="#" class="btn btn-success btn-sm text-white">Passer le test</a>
                                     </div>
@@ -140,9 +139,9 @@
                         </div>
                     {% endfor %}
                 </div>
-
             </div>
 
+            {# COLONNE DROITE : Documents (Je n'ai pas touché, mais tu peux appliquer la même logique si nécessaire) #}
             <div class="col-lg-4">
                 <div class="card shadow-sm border-0 mb-4 bg-light">
                     <div class="card-header bg-white fw-bold py-3">
@@ -159,10 +158,9 @@
                                             <span class="fw-bold">{{ doc.title }}</span>
                                         </div>
                                     </div>
-
                                     <div class="d-grid gap-2">
                                         <a href="{{ asset('assets/document/' ~ doc.path) }}" target="_blank" class="btn btn-sm btn-outline-dark">
-                                            <i class="fas fa-external-link-alt me-1"></i> Ouvrir le PDF
+                                            <i class="fas fa-external-link-alt me-1"></i> Ouvrir
                                         </a>
 
                                         {% if is_granted('ROLE_TEACHER') and cours.teacher == app.user %}
