@@ -16,7 +16,6 @@ class MistralService
     {
         $text = substr($text, 0, 100000);
 
-        // Adaptation des consignes selon le type
         if ($type === 'vrai_faux') {
             $typeInstruction = "Chaque question doit être une affirmation. Les réponses doivent être uniquement 'Vrai' et 'Faux'.";
             $answersInstruction = '

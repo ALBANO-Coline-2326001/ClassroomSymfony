@@ -146,4 +146,14 @@ class Qcm
 
         return $this;
     }
+
+    /**
+     * Calcule le score total possible basé sur le nombre de questions.
+     * (Suppose que 1 question = 1 point).
+     */
+    public function getMaxScore(): int
+    {
+        $count = $this->questions->count();
+        return $count > 0 ? $count : 20;
+    }
 }

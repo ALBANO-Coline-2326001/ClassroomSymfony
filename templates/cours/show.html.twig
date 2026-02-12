@@ -5,9 +5,9 @@
 {% block body %}
     <div class="container py-4">
         {% if is_granted('ROLE_TEACHER') and cours.teacher == app.user %}
-            <a href="{{ path('app_cours') }}" class="btn btn-link text-muted mb-3"><i class="fas fa-arrow-left"></i> Retour à mes cours</a>
+            <a href="{{ path('teacher_cours') }}" class="btn btn-link text-muted mb-3"><i class="fas fa-arrow-left"></i> Retour à mes cours</a>
         {% else %}
-            <a href="{{ path('app_cours') }}" class="btn btn-link text-muted mb-3"><i class="fas fa-arrow-left"></i> Retour aux cours</a>
+            <a href="{{ path('teacher_cours') }}" class="btn btn-link text-muted mb-3"><i class="fas fa-arrow-left"></i> Retour aux cours</a>
         {% endif %}
 
         <div class="row">
@@ -26,6 +26,7 @@
                 {% for video in cours.videos %}
                     <div class="card mb-3 border-0 shadow-sm">
                         <div class="card-body d-flex justify-content-between align-items-center">
+
                             <div>
                                 <h6 class="mb-0 fw-bold">{{ video.title }}</h6>
                                 {% if video.duration > 0 %}
@@ -33,17 +34,75 @@
                                 {% endif %}
                             </div>
 
+                            {# 2. Les Boutons d'action #}
                             <div class="d-flex gap-2">
+
+                                {# Bouton REGARDER (Toujours là) #}
                                 <a href="{{ asset('assets/video/' ~ video.url) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-play me-1"></i> Regarder
                                 </a>
+
+                                {# --- ZONE INTELLIGENTE GEMINI --- #}
                                 {% if is_granted('ROLE_TEACHER') and cours.teacher == app.user %}
-                                    <a href="{{ path('app_video_generate_qcm', {'id': video.id}) }}"
-                                       class="btn btn-sm btn-outline-success"
-                                       onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Analyse en cours...'; return confirm('L\'analyse vidéo prend du temps (transcription + IA). Patientez...');">
-                                        <i class="fas fa-robot me-1"></i> QCM Auto
-                                    </a>
+
+                                    {% if hasGemini %}
+                                        {# CAS 1 : J'AI UNE CLÉ GEMINI -> J'AFFICHE LE BOUTON ET LA MODALE #}
+
+                                        {# Le Bouton qui ouvre la modale #}
+                                        <button type="button" class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#videoGenerateModal{{ video.id }}">
+                                            <i class="fas fa-magic me-1"></i> Générer QCM
+                                        </button>
+
+                                        {# La Modale de configuration (Cachée par défaut) #}
+                                        <div class="modal fade" id="videoGenerateModal{{ video.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form action="{{ path('app_video_generate_ai', {'id': video.id}) }}" method="post">
+                                                        <div class="modal-header bg-warning">
+                                                            <h5 class="modal-title text-dark"><i class="fas fa-robot me-2"></i>IA Vidéo (Gemini)</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+
+                                                        <div class="modal-body">
+                                                            <p class="text-muted small">Gemini va visionner la vidéo <strong>{{ video.title }}</strong> pour créer un test.</p>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Type de questions</label>
+                                                                <select name="type" class="form-select">
+                                                                    <option value="qcm" selected>QCM (4 choix)</option>
+                                                                    <option value="vrai_faux">Vrai ou Faux</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Nombre de questions</label>
+                                                                <input type="number" name="nb_questions" class="form-control" value="10" min="1" max="20">
+                                                                <div class="form-text">Entre 1 et 20 questions.</div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                            <button type="submit" class="btn btn-warning fw-bold" onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Analyse...'">
+                                                                Lancer l'analyse
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    {% else %}
+                                        {# CAS 2 : PAS DE CLÉ GEMINI -> BOUTON GRISÉ (TOOLTIP OPTIONNEL) #}
+                                        <button class="btn btn-sm btn-secondary" disabled title="Clé API Gemini manquante">
+                                            <i class="fas fa-magic me-1"></i> IA non dispo
+                                        </button>
+                                    {% endif %}
+
                                 {% endif %}
+                                {# --- FIN ZONE GEMINI --- #}
+
+                                {# Bouton SUPPRIMER #}
                                 {% if is_granted('ROLE_TEACHER') and cours.teacher == app.user %}
                                     <button class="btn btn-sm btn-outline-danger" title="Supprimer la vidéo"><i class="fas fa-trash"></i></button>
                                 {% endif %}

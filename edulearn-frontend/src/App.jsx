@@ -18,7 +18,6 @@ function App() {
     const [score, setScore] = useState(0)
     const [showResult, setShowResult] = useState(false)
 
-    // Utility
     const normalizeCollection = (data) => {
         if (!data) return []
         if (Array.isArray(data)) return data
@@ -26,7 +25,6 @@ function App() {
         return []
     }
 
-    // 1. Charger les résultats
     const fetchStudentResults = () => {
         if (studentId) {
             fetch(`http://127.0.0.1:8000/api/custom/students/${studentId}/qcm-results`)
@@ -57,7 +55,6 @@ function App() {
     }, [studentId])
 
     useEffect(() => {
-        // Liste des QCM disponibles
         fetch(`http://127.0.0.1:8000/api/custom/qcms`)
             .then(res => res.json())
             .then(data => {
@@ -70,8 +67,6 @@ function App() {
             })
     }, [])
 
-    // CORRECTION : Le backend renvoie déjà les QCM groupés par cours.
-    // On n'a pas besoin de refaire le tri ici, on passe direct.
     const groupedQcms = qcms;
 
     // --- Logique du QCM ---
@@ -91,7 +86,6 @@ function App() {
     const handleAnswerSelection = (answer) => {
         console.log("--- CLIC RÉPONSE ---", answer);
 
-        // Validation robuste (booléen ou entier 1)
         const isCorrect = (answer.is_correct === true) || (answer.is_correct_int === 1);
 
         console.log("VERDICT :", isCorrect ? "✅ JUSTE" : "❌ FAUX");
@@ -133,10 +127,45 @@ function App() {
     const handleLogout = () => { localStorage.removeItem('token'); window.location.href = 'http://127.0.0.1:8000/logout' }
     const toggleCourse = (id) => setExpandedCourse(expandedCourse === id ? null : id)
     const downloadDocument = (url) => window.open(`http://127.0.0.1:8000${url}`, '_blank')
+    const downloadVideo = (url) => {
+        if (!url) {
+            alert("Erreur : L'URL de la vidéo est vide !");
+            return;
+        }
+
+        const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+        const fullLink = `http://127.0.0.1:8000/assets/video${cleanUrl}`;
+
+        window.open(fullLink, '_blank');
+    }
+
+    const getQcmsForCourse = (courseId) => {
+        if (!groupedQcms || groupedQcms.length === 0) return [];
+
+        const strCourseId = String(courseId);
+
+        const group = groupedQcms.find(g => String(g.course_id) === strCourseId);
+
+        return group ? group.qcms : [];
+    };
+
+    const findQcmForVideo = (videoTitle, courseId) => {
+        const qcms = getQcmsForCourse(courseId);
+        if (qcms.length === 0) return null;
+
+        const vTitleClean = videoTitle.toLowerCase().trim();
+
+        const found = qcms.find(q => {
+            const qTitleClean = q.title.toLowerCase();
+
+            return qTitleClean.includes(vTitleClean);
+        });
+
+        return found;
+    };
 
     return (
         <>
-            {/* Navigation */}
             <nav className="navbar">
                 <div className="nav-container">
                     <div className="logo">🎓 EduLearn</div>
@@ -188,14 +217,35 @@ function App() {
                                             {course.videos?.length > 0 && (
                                                 <div style={{ marginTop: '1rem' }}>
                                                     <h4>📹 Vidéos</h4>
-                                                    {course.videos.map(v => (
-                                                        <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                                            <span>🎬 {v.title}</span>
-                                                            <a href={v.url} target="_blank" className="btn btn-outline-small">Regarder</a>
-                                                        </div>
-                                                    ))}
+                                                    {course.videos.map(v => {
+                                                        const linkedQcm = findQcmForVideo(v.title, course.id);
+                                                        return (
+                                                            <div key={v.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', padding: '8px', background: '#fff', borderRadius: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                                                                <span style={{flex: 1, fontWeight: '500'}}>🎬 {v.title}</span>
+                                                                <div style={{ display: 'flex', gap: '10px' }}>
+                                                                    <button
+                                                                        onClick={() => downloadVideo(v.url)}
+                                                                        className="btn btn-outline-small"
+                                                                        style={{display:'flex', alignItems:'center'}}
+                                                                    >
+                                                                        📺 Regarder
+                                                                    </button>
+                                                                    {linkedQcm && (
+                                                                        <button
+                                                                            className="btn-take-qcm"
+                                                                            style={{padding: '4px 12px', fontSize: '0.85rem', background: '#ffc107', color: '#000', border: 'none'}}
+                                                                            onClick={() => startQcm(linkedQcm.id)}
+                                                                        >
+                                                                            ✨ Quiz IA
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
+
                                             {course.documents?.length > 0 && (
                                                 <div style={{ marginTop: '1rem' }}>
                                                     <h4>📄 Documents</h4>
@@ -205,6 +255,24 @@ function App() {
                                                             <button onClick={() => downloadDocument(d.download_url)} className="btn btn-outline-small">Télécharger</button>
                                                         </div>
                                                     ))}
+                                                </div>
+                                            )}
+
+                                            {getQcmsForCourse(course.id).length > 0 && (
+                                                <div style={{ marginTop: '1.5rem', borderTop: '1px dashed #ccc', paddingTop: '1rem' }}>
+                                                    <h4>🧠 Tous les Quiz du cours</h4>
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                                        {getQcmsForCourse(course.id).map(qcm => (
+                                                            <button
+                                                                key={qcm.id}
+                                                                className="btn-take-qcm"
+                                                                onClick={() => startQcm(qcm.id)}
+                                                                style={{ fontSize: '0.9rem' }}
+                                                            >
+                                                                🖊️ {qcm.title}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

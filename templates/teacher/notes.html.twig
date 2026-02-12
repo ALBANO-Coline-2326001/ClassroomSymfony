@@ -29,6 +29,10 @@
                         </thead>
                         <tbody>
                         {% for note in notes %}
+
+                            {% set maxScore = note.qcm.maxScore %}
+                            {% set noteSur20 = (note.score / maxScore) * 20 %}
+
                             <tr>
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center">
@@ -47,18 +51,25 @@
                                     </div>
                                     <div class="small fw-bold text-primary">
                                         {{ note.qcm.title }}
+                                        <span class="text-muted fw-normal ms-1" style="font-size: 0.8em;">(/{{ maxScore }})</span>
                                     </div>
                                 </td>
                                 <td class="text-muted small">
                                     <i class="far fa-clock me-1"></i> {{ note.attemptedAt|date('d/m/Y H:i') }}
                                 </td>
                                 <td class="text-center">
-                                    <span class="h6 fw-bold">{{ note.score }}/20</span>
+                                    <span class="h6 fw-bold">{{ note.score }}/{{ maxScore }}</span>
+
+                                    {% if maxScore != 20 %}
+                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                            ~ {{ noteSur20|number_format(1) }}/20
+                                        </div>
+                                    {% endif %}
                                 </td>
                                 <td class="text-end pe-4">
-                                    {% if note.score >= 15 %}
+                                    {% if noteSur20 >= 15 %}
                                         <span class="badge bg-success-subtle text-success rounded-pill px-3">Excellent</span>
-                                    {% elseif note.score >= 10 %}
+                                    {% elseif noteSur20 >= 10 %}
                                         <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Validé</span>
                                     {% else %}
                                         <span class="badge bg-danger-subtle text-danger rounded-pill px-3">Échec</span>

@@ -40,7 +40,7 @@ class StudentApiController extends AbstractController
             }
             $documents = [];
             foreach ($cours->getDocuments() as $document) {
-                $documents[] = ['id' => $document->getId(), 'title' => $document->getTitle(), 'download_url' => '/uploads/documents/' . $document->getPath()];
+                $documents[] = ['id' => $document->getId(), 'title' => $document->getTitle(), 'download_url' => '/assets/document/' . $document->getPath()];
             }
             $data[] = [
                 'id' => $cours->getId(),
@@ -196,12 +196,12 @@ class StudentApiController extends AbstractController
 
     #[Route('/uploads/documents/{filename}', name: 'download_document', methods: ['GET'])]
     public function downloadDocument(string $filename): BinaryFileResponse {
-        return $this->file($this->getParameter('kernel.project_dir') . '/public/upload/' . $filename);
+        return $this->file($this->getParameter('kernel.project_dir') . '/public/uploads/' . $filename);
     }
 
     #[Route('/uploads/videos/{filename}', name: 'get_video', methods: ['GET'])]
     public function getVideo(string $filename): BinaryFileResponse {
-        $response = $this->file($this->getParameter('kernel.project_dir') . '/public/upload/' . $filename);
+        $response = $this->file($this->getParameter('kernel.project_dir') . '/public/uploads/' . $filename);
         $response->headers->set('Content-Type', 'video/mp4');
         return $response;
     }

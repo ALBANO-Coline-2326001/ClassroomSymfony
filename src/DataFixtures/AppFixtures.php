@@ -4,15 +4,14 @@ namespace App\DataFixtures;
 
 use App\Entity\Answer;
 use App\Entity\Cours;
-use App\Entity\Question;
-use App\Entity\Qcm;
+use App\Entity\Document;
 use App\Entity\Note;
+use App\Entity\Qcm;
+use App\Entity\Question;
 use App\Entity\Student;
 use App\Entity\Teacher;
-use App\Entity\Video;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Faker\Factory;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
@@ -21,100 +20,69 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        $faker = Factory::create('fr_FR');
-
-        // --- 1. CRÉATION DU PROFESSEUR (Admin du contenu) 👨‍🏫 ---
         $teacher = new Teacher();
-        $teacher->setEmail('prof@edulearn.fr')
+        $teacher->setEmail('prof@classroom.fr')
             ->setFirstName('Jean')
-            ->setLastName('Dubois')
+            ->setLastName('Professeur')
             ->setRoles(['ROLE_TEACHER'])
             ->setPassword($this->hasher->hashPassword($teacher, 'password'));
-
         $manager->persist($teacher);
 
-        // --- 2. CRÉATION DES COURS (Basé sur ta maquette) 📚 ---
-        $coursesData = [
-            ['Introduction à Symfony', 'Les bases du framework PHP.'],
-            ['Security Bundle', 'Gérer l\'authentification et les rôles.'],
-            ['API Platform', 'Créer une API REST performante.'],
-            ['Doctrine ORM', 'Maitriser la base de données relationnelle.']
-        ];
+        // 👨‍🎓 Élève
+        $student = new Student();
+        $student->setEmail('eleve@classroom.fr')
+            ->setFirstName('Paul')
+            ->setLastName('Etudiant')
+            ->setRoles(['ROLE_STUDENT'])
+            ->setPassword($this->hasher->hashPassword($student, 'password'));
+        $manager->persist($student);
 
-        $allQuizzes = [];
+        $cours = new Cours();
+        $cours->setTitle('Histoire de France')
+            ->setContenu('Ce cours unique couvre l\'histoire de France')
+            ->setTeacher($teacher);
+        $manager->persist($cours);
 
-        foreach ($coursesData as $cData) {
-            $course = new Cours();
-            $course->setTitle($cData[0])
-                ->setContenu($cData[1])
-                ->setTeacher($teacher);
-            $manager->persist($course);
+        $doc = new Document();
+        $doc->setTitle('Support de cours PDF')
+            ->setPath('cours_demo.pdf')
+            ->setCours($cours);
+        $manager->persist($doc);
 
-            for ($i = 1; $i <= 3; $i++) {
-                $video = new Video();
-                $video->setTitle("Chapitre $i : " . $faker->sentence(3))
-                    ->setDuration($faker->numberBetween(10, 60)) // Durée en minutes
-                    ->setUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ') // Fake URL
-                    ->setCours($course);
-                $manager->persist($video);
-            }
+        $qcm = new Qcm();
+        $qcm->setTitle('QCM Final')
+            ->setCours($cours);
+        $manager->persist($qcm);
 
-            $qcm = new Qcm();
-            $qcm->setTitle('QCM - ' . $cData[0])
-                ->setCours($course);
-            $manager->persist($qcm);
-            $allQuizzes[] = $qcm; // Sauvegarde pour plus tard
+        for ($q = 1; $q <= 5; $q++) {
+            $question = new Question();
+            $question->setEntitled('Question numéro ' . $q . ' ?');
+            $question->setQcm($qcm);
+            $manager->persist($question);
 
-            // C. Ajout des Questions/Réponses
-            for ($q = 0; $q < 5; $q++) { // 5 Questions par Quiz
-                $question = new Question();
-                $question->setEntitled($faker->sentence(10) . ' ?') // Phrase interrogative
-                ->setQcm($qcm);
-                $manager->persist($question);
+            $correct = new Answer();
+            $correct->setText('La bonne réponse');
+            $correct->setIsCorrect(true);
+            $correct->setQuestion($question);
+            $manager->persist($correct);
 
-                // 1 Bonne réponse ✅
-                $correctAnswer = new Answer();
-                $correctAnswer->setText($faker->sentence(4))
-                    ->setIsCorrect(true)
-                    ->setQuestion($question);
-                $manager->persist($correctAnswer);
-
-                // 3 Mauvaises réponses ❌
-                for ($a = 0; $a < 3; $a++) {
-                    $wrongAnswer = new Answer();
-                    $wrongAnswer->setText($faker->sentence(4))
-                        ->setIsCorrect(false)
-                        ->setQuestion($question);
-                    $manager->persist($wrongAnswer);
-                }
+            for ($a = 0; $a < 3; $a++) {
+                $wrong = new Answer();
+                $wrong->setText('Une mauvaise réponse');
+                $wrong->setIsCorrect(false);
+                $wrong->setQuestion($question);
+                $manager->persist($wrong);
             }
         }
 
-        $studentsData = [
-            ['Alice', 'Martin'], ['Thomas', 'Dubois'],
-            ['Sophie', 'Bernard'], ['Lucas', 'Laurent']
-        ];
+        $note = new Note();
+        $note->setStudent($student)
+            ->setQcm($qcm)
+            ->setScore(3)
+            ->setAttemptedAt(new \DateTimeImmutable());
+        $manager->persist($note);
 
-        foreach ($studentsData as $sData) {
-            $student = new Student();
-            $student->setEmail(strtolower($sData[0]) . '.' . strtolower($sData[1]) . '@etu.univ.fr')
-                ->setFirstName($sData[0])
-                ->setLastName($sData[1])
-                ->setRoles(['ROLE_STUDENT'])
-                ->setPassword($this->hasher->hashPassword($student, 'password'));
-            $manager->persist($student);
-
-            for ($k = 0; $k < 2; $k++) {
-                $attempt = new Note();
-                $attempt->setStudent($student)
-                    ->setQcm($faker->randomElement($allQuizzes)) // Un qcm au pif
-                    ->setScore($faker->numberBetween(8, 20)) // Note entre 8 et 20
-                    ->setAttemptedAt(\DateTimeImmutable::createFromMutable($faker->dateTimeBetween('-1 month', 'now')));
-
-                $manager->persist($attempt);
-            }
-        }
-
-        $manager->flush(); // Envoi final vers MySQL
+        // Envoi en BDD
+        $manager->flush();
     }
 }
