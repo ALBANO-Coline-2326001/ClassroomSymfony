@@ -97,3 +97,6 @@ cd .\edulearn-frontend\
 npm run dev
 ```
 L'application react sera disponible sur http://localhost:5173/student/
+
+
+
